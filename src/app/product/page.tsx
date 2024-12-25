@@ -1,44 +1,96 @@
 "use client"; // This marks the component as a client component
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
 
 export default function ProductPage() {
-  const [products, setProducts] = useState([
-    { id: 1, name: "Product 1", price: 10.0 },
-    { id: 2, name: "Product 2", price: 20.0 },
-    { id: 3, name: "Product 3", price: 30.0 },
-  ]);
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({ name: "", price: "" });
 
+  // Fetch products from backend
+  const fetchProducts = async () => {
+    const res = await fetch("/api/product", {
+      method: "GET",
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setProducts(data);
+    } else {
+      console.error("Failed to fetch products");
+    }
+  };
+
   // Add a new product
-  const addProduct = () => {
+  const addProduct = async () => {
     if (!newProduct.name || !newProduct.price)
       return alert("All fields are required!");
-    const newId = products.length ? products[products.length - 1].id + 1 : 1;
-    setProducts([
-      ...products,
-      { id: newId, ...newProduct, price: parseFloat(newProduct.price) },
-    ]);
-    setNewProduct({ name: "", price: "" });
+    const res = await fetch("/api/product", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newProduct),
+    });
+
+    if (res.ok) {
+      const addedProduct = await res.json();
+      setProducts([...products, addedProduct]);
+      setNewProduct({ name: "", price: "" });
+    } else {
+      console.error("Failed to add product");
+    }
   };
 
   // Delete a product
-  const deleteProduct = (id: number) => {
-    setProducts(products.filter((product) => product.id !== id));
+  const deleteProduct = async (id: number) => {
+    const res = await fetch(`/api/product/${id}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      const deletedProduct = await res.json();
+      setProducts(
+        products.filter((product) => product.id !== deletedProduct.id)
+      );
+    } else {
+      console.error("Failed to delete product");
+    }
   };
 
   // Edit a product
-  const updateProduct = (
+  const updateProduct = async (
     id: number,
     updatedProduct: { name: string; price: number }
   ) => {
-    setProducts(
-      products.map((product) =>
-        product.id === id ? { ...product, ...updatedProduct } : product
-      )
-    );
+    const res = await fetch(`/api/product/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedProduct),
+    });
+
+    if (res.ok) {
+      const updatedProductData = await res.json();
+      setProducts(
+        products.map((product) =>
+          product.id === id ? { ...product, ...updatedProductData } : product
+        )
+      );
+    } else {
+      console.error("Failed to update product");
+    }
   };
+
+  // Fetch products on page load
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <div style={styles.container}>
@@ -77,7 +129,7 @@ export default function ProductPage() {
           <ul>
             {products.map((product) => (
               <li key={product.id} style={styles.listItem}>
-                <strong>{product.name}</strong> - ${product.price.toFixed(2)}
+                <strong>{product.name}</strong>  ${product.price}
                 <button
                   onClick={() => {
                     const updatedName =

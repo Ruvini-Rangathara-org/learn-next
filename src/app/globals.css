@@ -1,6 +1,12 @@
 /* globals.css */
 
 /* General Reset and Base Styles */
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -62,4 +68,9 @@ footer {
   position: fixed;
   bottom: 0;
   width: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  background-color: transparent;
 }

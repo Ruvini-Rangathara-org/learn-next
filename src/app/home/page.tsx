@@ -1,4 +1,34 @@
+"use client"; // This marks the component as a client component
+
+import { useState, useEffect } from "react";
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
 export default function HomePage() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  // Fetch products from backend
+  const fetchProducts = async () => {
+    const res = await fetch("/api/product", {
+      method: "GET",
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setProducts(data);
+    } else {
+      console.error("Failed to fetch products");
+    }
+  };
+
+  // Fetch products on page load
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
       <header style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -9,19 +39,33 @@ export default function HomePage() {
       <section style={{ marginBottom: "2rem" }}>
         <h2>Featured Products</h2>
         <p>Discover our top picks for you.</p>
-        <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <div style={{ border: "1px solid #ddd", padding: "1rem", borderRadius: "8px" }}>
-            <h3>Product 1</h3>
-            <p>$10.00</p>
-          </div>
-          <div style={{ border: "1px solid #ddd", padding: "1rem", borderRadius: "8px" }}>
-            <h3>Product 2</h3>
-            <p>$20.00</p>
-          </div>
-          <div style={{ border: "1px solid #ddd", padding: "1rem", borderRadius: "8px" }}>
-            <h3>Product 3</h3>
-            <p>$30.00</p>
-          </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", // Adjust column width and allow more cards per row
+            gap: "1rem", // Increased gap between cards
+            justifyItems: "center",
+            marginTop: "1rem",
+          }}
+        >
+          {products.length ? (
+            products.map((product) => (
+              <div
+                key={product.id}
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "1rem",
+                  borderRadius: "8px",
+                  textAlign: "center",
+                }}
+              >
+                <h3>{product.name}</h3>
+                <p>${product.price}</p>
+              </div>
+            ))
+          ) : (
+            <p>Loading products...</p>
+          )}
         </div>
       </section>
 

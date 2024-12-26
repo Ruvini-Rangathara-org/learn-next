@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/app/lib/db";
 export async function GET() {
   const client = await connectToDatabase();
   try {
-    const result = await client.query("SELECT * FROM products;");
+    const result = await client.query("SELECT * FROM products ORDER BY id ASC;");
     return new Response(JSON.stringify(result.rows), { status: 200 });
   } catch (error) {
     console.error(error);

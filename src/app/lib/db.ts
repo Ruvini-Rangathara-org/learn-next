@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 
-// Create a database connection pool
+// Create a single pool instance for the app
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -9,13 +9,12 @@ const pool = new Pool({
   port: Number(process.env.DB_PORT),
 });
 
-// Connect to the database (using the pool)
+// Function to get a client from the pool
 export const connectToDatabase = async () => {
-  const client = await pool.connect();
-  return client;
+  return await pool.connect();
 };
 
-// Disconnect from the database
+// Function to end the pool during app shutdown
 export const disconnectFromDatabase = async () => {
-  await pool.end();  // Close the pool when you're done
+  await pool.end();
 };

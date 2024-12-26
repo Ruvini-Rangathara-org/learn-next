@@ -48,26 +48,40 @@ export default function ProductPage() {
 
   // Delete a product
   const deleteProduct = async (id: number) => {
-    const res = await fetch(`/api/product/${id}`, {
-      method: "DELETE",
-    });
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
 
-    if (res.ok) {
-      const deletedProduct = await res.json();
-      setProducts(
-        products.filter((product) => product.id !== deletedProduct.id)
-      );
-    } else {
-      console.error("Failed to delete product");
+    if (!confirmDelete) {
+      return; // Exit if the user cancels
+    }
+
+    try {
+      const res = await fetch(`/api/product/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        const deletedProduct = await res.json();
+        setProducts(
+          products.filter((product) => product.id !== deletedProduct.id)
+        );
+        alert("Product deleted successfully");
+      } else {
+        console.error("Failed to delete product");
+      }
+    } catch (error) {
+      console.error("An error occurred while deleting the product:", error);
     }
   };
 
   // Edit a product
-  const updateProduct = async (
-    id: number,
-    updatedProduct: { name: string; price: number }
-  ) => {
-    const res = await fetch(`/api/product/${id}`, {
+  const updateProduct = async (updatedProduct: {
+    id: number;
+    name: string;
+    price: number;
+  }) => {
+    const res = await fetch(`/api/product/${updatedProduct.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -79,9 +93,12 @@ export default function ProductPage() {
       const updatedProductData = await res.json();
       setProducts(
         products.map((product) =>
-          product.id === id ? { ...product, ...updatedProductData } : product
+          product.id === updatedProduct.id
+            ? { ...product, ...updatedProductData }
+            : product
         )
       );
+      alert("Product updated successfully");
     } else {
       console.error("Failed to update product");
     }
@@ -129,7 +146,7 @@ export default function ProductPage() {
           <ul>
             {products.map((product) => (
               <li key={product.id} style={styles.listItem}>
-                <strong>{product.name}</strong>  ${product.price}
+                <strong>{product.name}</strong> ${product.price}
                 <button
                   onClick={() => {
                     const updatedName =
@@ -138,7 +155,8 @@ export default function ProductPage() {
                       prompt("Enter new price:", product.price.toString()) ||
                         product.price.toString()
                     );
-                    updateProduct(product.id, {
+                    updateProduct({
+                      id: product.id,
                       name: updatedName,
                       price: updatedPrice,
                     });
